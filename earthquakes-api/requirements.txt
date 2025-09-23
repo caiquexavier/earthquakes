@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+alembic
+psycopg[binary]
+SQLAlchemy==2.0.34
+psycopg2-binary==2.9.9
+
+
