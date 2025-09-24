@@ -1,0 +1,32 @@
+@use 'vuetify/styles';
+
+:root { --primary-color: #000000; }
+
+html, body, #app {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, 'Noto Sans', 'Liberation Sans', system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Minimal typography; rely on Vuetify defaults */
+
+.heading-spaced {
+  margin-bottom: 0.5rem;
+}
+
+.badge-mag-green { color: #0F3D0F !important; }
+.badge-mag-red { color: #2B2B2B !important; }
+
+/* Remove global elevation overrides in Material baseline */
+
+/* Keep optional appbar hook empty for simple config */
+.ds-appbar { border-bottom: 1px solid #e0e0e0; }
+
+.ds-card .v-card-title { font-weight: 600; }
+.ds-card .v-card-text { line-height: 1.4; }
+.ds-card .v-card-actions { gap: 8px; }
+.ds-input .v-field { min-height: 36px; }
+.ds-btn { box-shadow: none; }
+
+/* Use default Vuetify/Material typography */

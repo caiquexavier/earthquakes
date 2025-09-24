@@ -54,3 +54,7 @@ earthquakes-app/
 
 * Final minimal project tree as specified.
 * Confirmation that the acceptance criteria are met.
+
+##STEP:
+- Update filter and front end
+

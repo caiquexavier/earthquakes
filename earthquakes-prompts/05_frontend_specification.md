@@ -112,3 +112,84 @@ Implement the following corrections and config hygiene. Do not include any sampl
   * ✅ TS resolves Vuetify modules and `@/…` imports,
   * ✅ SCSS uses modern `@use` with no deprecation warnings,
   * ✅ App runs cleanly via `npm run dev`.
+
+
+Awesome—switching the filters to **hit the backend**. Here’s a tight, ready-to-paste **CursorAI Frontend Prompt** that wires the List page to your new `earthquake-api` endpoint with query params, keeps your badge colors, and avoids scope creep.
+
+---
+
+### 🚀 Frontend CursorAI Prompt (Backend-Integrated Filters)
+
+**Role:** You are a **frontend Vue 3 + Vite + TypeScript + Vuetify specialist**.
+**Goal:** Update the **Earthquake List** page in `earthquakes-app` to fetch filtered data from the backend `earthquake-api` using query params, and render with existing UI.
+
+---
+
+### Requirements
+
+1. **Preserve existing UI behavior**
+
+   * Use Vuetify components.
+   * Keep current layout and typography.
+   * Preserve **magnitude badges with exact colors**:
+
+     * `≥ 4.5` → `#f24949`
+     * `> 2.5 and < 4.5` → `#edf249`
+     * `≤ 2.5` → `#49a3f2`
+   * Keep GeoJSON parsing and the Details page with Google Maps intact.
+
+2. **Backend-integrated Filters**
+
+   * Add **two filter button groups** on the List page: **Timebox** and **Magnitude**.
+   * When a filter changes, **make a new request** to the backend (no client-side filtering of stale data).
+   * **HTTP GET** to the new endpoint (base path example—adjust only the base URL if needed, not the param names):
+
+     ```
+     GET {API_BASE}/api/earthquakes?timebox={T}&magnitude={M}
+     ```
+   * **Query params (strings):**
+
+     * `timebox` ∈ `H | D | W | M`
+     * `magnitude` ∈ `"4.5+" | "2.5+" | "1.0+" | "all"`
+   * **Response:** GeoJSON `FeatureCollection` (use existing parsing/rendering).
+
+3. **Filter Maps & Labels**
+
+   * **Timebox map (label → param):**
+
+     * `H` → `hour`
+     * `D` → `day`
+     * `W` → `week`
+     * `M` → `month`
+     * **IMPORTANT:** UI labels show `H/D/W/M`, but the **request param** must be the single letter (`H|D|W|M`).
+   * **Magnitude map (label → param):**
+
+     * `"4.5+"` → `"4.5+"`
+     * `"2.5+"` → `"2.5+"`
+     * `"1.0+"` → `"1.0+"`
+     * `"all"` → `"all"`
+
+4. **UI/UX behavior**
+
+   * Use **Vuetify button groups**; highlight the active selection.
+   * **Default selection:** `timebox=D` (Day) and `magnitude=all`.
+   * On change: show a loading state, fetch, handle errors with a simple inline alert/snackbar, then render the new list.
+   * Do **not** add extra features (no pagination, no search, no URL sync) unless already present.
+
+5. **Integration details**
+
+   * Read `API_BASE` from existing config/env the app already uses (do **not** introduce new config patterns).
+   * Respect existing CORS behavior (assume backend allows it).
+   * Keep typing strict (TypeScript): define minimal types only if needed to satisfy the fetch handler; do not refactor unrelated code.
+
+---
+
+### Out of Scope (do not change)
+
+* No backend code changes.
+* No design restyle beyond the badge colors rule above.
+* No new routes/pages/components beyond what’s needed to place the two button groups and wire the fetch.
+
+---
+
+**Deliverable:** Updated List page with **backend-driven filtering** via `timebox` and `magnitude` query params, correct badge colors, loading/error handling, and unchanged existing features.

@@ -1,0 +1,139 @@
+**Role:** As **Frontend Engineer and clean code guard**.
+
+**Goal:** In `earthquakes-app` (Vue 3 + Vite + TypeScript + Vuetify), embed a **small OpenStreetMap map** inside each earthquake **card** on the List view. Create a dedicated, reusable **MiniMap** component that consumes **GeoJSON coordinates** from each feature to place a **single pin** and **center at a medium zoom**. Do **not** change any other feature or styling beyond what’s necessary to add the map. Add minimal tests to ensure it renders and centers correctly.
+
+---
+
+### Constraints
+
+* **No unrelated changes**. Do not modify filtering, badges, routes, or data fetching logic.
+* **Minimal surface area**: only add what’s required to render the OSM map and wire it into the card.
+* **Type-safe**: TypeScript strict where possible.
+* **Clean code**: small, focused component; clear props; no dead code.
+* **Use OpenStreetMap tiles** (no API key). Prefer **Leaflet**.
+* **GeoJSON input**: features use `geometry.coordinates = [lon, lat, depth?]`. Use `[lat, lon]` when interacting with the map library.
+* **Medium distance**: default zoom **6** (tweakable via prop, default 6).
+* **No global style breaks**; keep styles scoped to the component.
+
+---
+
+### Dependencies
+
+1. Add Leaflet and types:
+
+* `leaflet`
+* `@types/leaflet` (if needed for TS)
+
+Also ensure Leaflet CSS is included once (only where needed).
+
+---
+
+### New Component
+
+Create `src/components/MiniMap.vue` with:
+
+* **Props**:
+
+  * `lat: number` (required)
+  * `lon: number` (required)
+  * `zoom?: number` (default `6`)
+  * `height?: string` (default `"160px"`)
+  * `interactive?: boolean` (default `false`, to keep it lightweight on the card)
+* **Behavior**:
+
+  * On mount, initialize Leaflet map into an internal div with a **unique id** or `ref`.
+  * Use **OSM tile layer**: `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png` with proper attribution.
+  * Center the map at `[lat, lon]` with `zoom`.
+  * Add a single **marker** at `[lat, lon]`.
+  * Disable unnecessary controls (zoom control optional) when `interactive` is false.
+  * Watch for prop changes to recenter if the feature updates (rare, but keep it simple).
+* **Styles**:
+
+  * Scoped style setting container height via prop.
+  * Import Leaflet CSS locally inside the component (so global CSS is untouched).
+* **Accessibility/Testability**:
+
+  * Add `data-testid="mini-map"` on the map container.
+
+---
+
+### Integration (Card)
+
+* Identify the earthquake **card component** used in the List view (e.g., `src/components/EarthquakeCard.vue` or similar).
+* **Do not alter** existing card info (magnitude badges, titles, etc.). Simply insert the `MiniMap` **below** the primary details block.
+* Derive `lat`/`lon` from the feature:
+
+  * `const [lon, lat] = feature.geometry.coordinates;`
+  * Pass `:lat="lat"` `:lon="lon"` and optional `:zoom="6"`, `:interactive="false"`.
+* Ensure the card layout remains responsive and no overflow occurs. Use a small fixed-height container for the map (`height="160px"` by default).
+
+---
+
+### Files to Touch (only if they exist; otherwise create)
+
+* `src/components/MiniMap.vue` **(new)**
+* `src/components/EarthquakeCard.vue` (or the card file actually used in the List) — **insert MiniMap usage only**.
+* `src/types/geojson.ts` (if types are missing): ensure Feature typing supports `geometry.coordinates: [number, number, number?]`.
+* **Tests**:
+
+  * `tests/components/MiniMap.spec.ts`
+  * `tests/components/EarthquakeCard.spec.ts` (add/adjust to assert MiniMap presence)
+
+---
+
+### Testing (Vitest + Vue Test Utils)
+
+* **MiniMap.spec.ts**
+
+  * Renders without crashing given `lat`, `lon`.
+  * Applies default `zoom=6` when none provided.
+  * Has `data-testid="mini-map"`.
+* **EarthquakeCard.spec.ts**
+
+  * Given a feature with `geometry.coordinates = [lon, lat]`, the card renders a `MiniMap` child with correct props.
+  * Snapshot (optional) to confirm map placeholder DOM is present.
+
+Use **DOM-only assertions** (don’t spin up real tiles); if needed, **mock Leaflet** methods to avoid network.
+
+---
+
+### Implementation Steps
+
+1. **Install deps**:
+
+   * Add `leaflet` and `@types/leaflet` to project.
+2. **Create `MiniMap.vue`**:
+
+   * `<script setup lang="ts">` with props listed above.
+   * `ref` for container; onMounted initialize Leaflet map:
+
+     * `L.map(container, { zoomControl: interactive })`
+     * `L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' })`
+     * `map.setView([lat, lon], zoom);`
+     * `L.marker([lat, lon]).addTo(map);`
+   * `onBeforeUnmount` to `map.remove()`.
+   * `watch` for lat/lon/zoom to update view.
+   * Style block to set container height using prop (inline style binding on div is fine).
+   * Import Leaflet CSS at top of component: `import 'leaflet/dist/leaflet.css'`.
+3. **Wire into the card**:
+
+   * In the card component that renders each feature, compute `lat`, `lon` from `feature.geometry.coordinates`.
+   * Add `<MiniMap :lat="lat" :lon="lon" :zoom="6" :interactive="false" height="160px" data-testid="feature-mini-map" />`.
+   * Keep all existing content intact (do not change magnitude badges, filters, or layout beyond inserting this block).
+4. **Tests**:
+
+   * For `MiniMap.spec.ts`, mount with sample props and assert container exists; optionally mock `L.map` and friends.
+   * For the card spec, pass a minimal mock feature (GeoJSON Feature with `Point` and `[lon, lat]`), render card, and assert `MiniMap` is present with expected props.
+5. **Lint & Typecheck**:
+
+   * Ensure no TS errors or ESLint violations.
+
+---
+
+### Acceptance Criteria
+
+* Each earthquake card now includes a **Leaflet-powered OpenStreetMap** mini map showing a **single pin** at the quake’s location.
+* The map centers at a **medium zoom (6)** by default and respects the `lat`/`lon` from GeoJSON `[lon, lat]`.
+* No other features or visuals are changed (badges, filters, routes remain intact).
+* Tests cover component rendering and card integration.
+* Build passes; no new console errors or type errors.
